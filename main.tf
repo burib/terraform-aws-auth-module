@@ -1,5 +1,5 @@
 # Variables
-variable "domain" {
+variable "domain_name" {
   type        = string
   description = "Main domain name (e.g., example.com)"
 }
@@ -34,8 +34,8 @@ variable "tags" {
 
 # Locals
 locals {
-  auth_domain = "auth.${var.domain}"
-  api_domain  = "api.${var.domain}"
+  auth_domain = "auth.${var.domain_name_name}"
+  api_domain  = "api.${var.domain_name}"
   
   password_policy = {
     minimum_length                   = 8
@@ -104,7 +104,7 @@ resource "aws_ssm_parameter" "google_client_secret" {
 
 # Cognito User Pool
 resource "aws_cognito_user_pool" "main" {
-  name = "${var.domain}-${var.environment}"
+  name = "${var.domain_name}-${var.environment}"
 
   # Account recovery
   account_recovery_setting {
@@ -177,7 +177,7 @@ resource "aws_cognito_user_pool" "main" {
     
     invite_message_template {
       email_message = "Your username is {username} and temporary password is {####}."
-      email_subject = "Your temporary password for ${var.domain}"
+      email_subject = "Your temporary password for ${var.domain_name}"
       sms_message   = "Your username is {username} and temporary password is {####}."
     }
   }
@@ -194,7 +194,7 @@ resource "aws_cognito_user_pool_domain" "main" {
 
 # Cognito Identity Pool
 resource "aws_cognito_identity_pool" "main" {
-  identity_pool_name = "${var.domain}-${var.environment}"
+  identity_pool_name = "${var.domain_name}-${var.environment}"
   
   allow_unauthenticated_identities = false
   allow_classic_flow              = false
@@ -210,7 +210,7 @@ resource "aws_cognito_identity_pool" "main" {
 
 # Cognito User Pool Client
 resource "aws_cognito_user_pool_client" "main" {
-  name                                 = "${var.domain}-client"
+  name                                 = "${var.domain_name}-client"
   user_pool_id                        = aws_cognito_user_pool.main.id
   
   generate_secret                     = true
@@ -224,13 +224,13 @@ resource "aws_cognito_user_pool_client" "main" {
   supported_identity_providers         = ["COGNITO", "Google", "GitHub"]
   
   callback_urls = [
-    "https://${var.domain}/callback",
-    "https://${var.domain}/signin"
+    "https://${var.domain_name}/callback",
+    "https://${var.domain_name}/signin"
   ]
   
   logout_urls = [
-    "https://${var.domain}/signout",
-    "https://${var.domain}/logout"
+    "https://${var.domain_name}/signout",
+    "https://${var.domain_name}/logout"
   ]
 
   token_validity_units {
@@ -242,7 +242,7 @@ resource "aws_cognito_user_pool_client" "main" {
 
 # DynamoDB Table for Cedar Policies
 resource "aws_dynamodb_table" "cedar_policies" {
-  name           = "${var.domain}-cedar-policies"
+  name           = "${var.domain_name}-cedar-policies"
   billing_mode   = "PAY_PER_REQUEST"
   hash_key       = "policy_id"
   range_key      = "version"
