@@ -475,4 +475,37 @@ output "user_pool_id" {
 }
 
 output "user_pool_client_id" {
-  value       = aws_cognito_user_pool_
+  value       = aws_cognito_user_pool_client.main.id
+  description = "The ID of the Cognito User Pool Client"
+}
+
+output "user_pool_client_secret" {
+  value       = aws_cognito_user_pool_client.main.client_secret
+  description = "The Client Secret of the Cognito User Pool Client"
+  sensitive   = true
+}
+
+output "identity_pool_id" {
+  value       = aws_cognito_identity_pool.main.id
+  description = "The ID of the Cognito Identity Pool"
+}
+
+output "auth_domain" {
+  value       = local.auth_domain
+  description = "The domain name for the authentication endpoint"
+}
+
+output "hosted_ui_url" {
+  value       = "https://${local.auth_domain}/login?client_id=${aws_cognito_user_pool_client.main.id}&response_type=code&scope=email+openid+profile&redirect_uri=https://${var.domain_name}/callback"
+  description = "The URL for the Cognito Hosted UI"
+}
+
+output "cloudfront_distribution_arn" {
+  value       = aws_cognito_user_pool_domain.main.cloudfront_distribution_arn
+  description = "The ARN of the CloudFront distribution for the Cognito domain"
+}
+
+output "cloudfront_distribution_zone_id" {
+  value       = aws_cognito_user_pool_domain.main.cloudfront_distribution_zone_id
+  description = "The Zone ID of the CloudFront distribution for the Cognito domain"
+}
