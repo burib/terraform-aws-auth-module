@@ -214,7 +214,7 @@ resource "aws_cognito_identity_pool" "main" {
 }
 
 # GitHub Identity Provider
-resource "aws_cognito_user_pool_identity_provider" "github" {
+resource "aws_cognito_identity_provider" "github" {
   user_pool_id  = aws_cognito_user_pool.main.id
   provider_name = "GitHub"
   provider_type = "OIDC"
@@ -239,7 +239,7 @@ resource "aws_cognito_user_pool_identity_provider" "github" {
 }
 
 # Google Identity Provider
-resource "aws_cognito_user_pool_identity_provider" "google" {
+resource "aws_cognito_identity_provider" "google" {
   user_pool_id  = aws_cognito_user_pool.main.id
   provider_name = "Google"
   provider_type = "Google"
@@ -259,7 +259,8 @@ resource "aws_cognito_user_pool_identity_provider" "google" {
   }
 }
 
-# Cognito User Pool Client
+# Update the User Pool Client configuration
+# Note: This replaces the existing client configuration
 resource "aws_cognito_user_pool_client" "main" {
   name                                 = "${var.domain_name}-client"
   user_pool_id                        = aws_cognito_user_pool.main.id
@@ -272,6 +273,8 @@ resource "aws_cognito_user_pool_client" "main" {
   allowed_oauth_flows_user_pool_client = true
   allowed_oauth_flows                  = ["code", "implicit"]
   allowed_oauth_scopes                 = ["email", "openid", "profile"]
+  
+  # Update supported identity providers after they are created
   supported_identity_providers         = ["COGNITO", "Google", "GitHub"]
   
   callback_urls = [
@@ -291,8 +294,8 @@ resource "aws_cognito_user_pool_client" "main" {
   }
 
   depends_on = [
-    aws_cognito_user_pool_identity_provider.github,
-    aws_cognito_user_pool_identity_provider.google
+    aws_cognito_identity_provider.github,
+    aws_cognito_identity_provider.google
   ]
 }
 
