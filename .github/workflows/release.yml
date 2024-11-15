@@ -1,0 +1,20 @@
+name: "Terraform Module Release"
+
+permissions:
+  id-token: write
+  issues: write
+  contents: write
+  pull-requests: write
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+jobs:
+  terraform_module_release:
+    if: github.repository != 'burib/terraform-aws-module-template'
+    uses: BuriCloud/github-workflows/.github/workflows/release.yml@main
+    with:
+      release-type: "terraform-module"
