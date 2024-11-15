@@ -213,6 +213,52 @@ resource "aws_cognito_identity_pool" "main" {
   tags = var.tags
 }
 
+# GitHub Identity Provider
+resource "aws_cognito_user_pool_identity_provider" "github" {
+  user_pool_id  = aws_cognito_user_pool.main.id
+  provider_name = "GitHub"
+  provider_type = "OIDC"
+
+  provider_details = {
+    client_id                = aws_ssm_parameter.github_client_id.value
+    client_secret            = aws_ssm_parameter.github_client_secret.value
+    attributes_request_method = "GET"
+    oidc_issuer             = "https://github.com"
+    authorize_scopes        = "openid email profile"
+    authorize_url          = "https://github.com/login/oauth/authorize"
+    token_url             = "https://github.com/login/oauth/access_token"
+    attributes_url        = "https://api.github.com/user"
+    jwks_uri             = "https://token.actions.githubusercontent.com/.well-known/jwks"
+  }
+
+  attribute_mapping = {
+    email    = "email"
+    username = "id"
+    name     = "name"
+  }
+}
+
+# Google Identity Provider
+resource "aws_cognito_user_pool_identity_provider" "google" {
+  user_pool_id  = aws_cognito_user_pool.main.id
+  provider_name = "Google"
+  provider_type = "Google"
+
+  provider_details = {
+    client_id     = aws_ssm_parameter.google_client_id.value
+    client_secret = aws_ssm_parameter.google_client_secret.value
+    authorize_scopes = "email profile openid"
+  }
+
+  attribute_mapping = {
+    email    = "email"
+    username = "sub"
+    given_name = "given_name"
+    family_name = "family_name"
+    picture = "picture"
+  }
+}
+
 # Cognito User Pool Client
 resource "aws_cognito_user_pool_client" "main" {
   name                                 = "${var.domain_name}-client"
