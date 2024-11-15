@@ -243,6 +243,11 @@ resource "aws_cognito_user_pool_client" "main" {
     id_token     = "hours"
     refresh_token = "days"
   }
+
+  depends_on = [
+    aws_cognito_user_pool_identity_provider.github,
+    aws_cognito_user_pool_identity_provider.google
+  ]
 }
 
 # DynamoDB Table for Cedar Policies
