@@ -25,7 +25,6 @@ variable "environment" {
   type        = string
 }
 
-
 variable "route53_zone_id" {
   type        = string
   description = "Route53 zone ID for DNS records"
@@ -35,6 +34,12 @@ variable "tags" {
   type        = map(string)
   description = "Tags to apply to resources"
   default     = {}
+}
+
+variable "alert_email" {
+  type        = string
+  description = "Email address for receiving alerts"
+  default     = ""
 }
 
 # Locals
@@ -65,6 +70,67 @@ locals {
     }
   }
 }
+
+# Setup Instructions for OAuth Providers
+#
+# 1. GitHub OAuth Setup:
+# =====================
+# a. Go to GitHub.com -> Settings -> Developer Settings -> OAuth Apps -> New OAuth App
+# b. Fill in the application details:
+#    - Application name: Your App Name (e.g., "MyApp Auth")
+#    - Homepage URL: https://your-domain.com
+#    - Application description: (Optional) Your app description
+#    - Authorization callback URL: https://auth.your-domain.com/oauth2/idpresponse
+# c. After creating, you'll get Client ID and generate a Client Secret
+# d. Store credentials in SSM:
+#    ```bash
+#    # Store GitHub Client ID
+#    aws ssm put-parameter \
+#        --name "/${var.environment}/auth/github_client_id" \
+#        --type "SecureString" \
+#        --value "your-github-client-id" \
+#        --description "GitHub OAuth Client ID"
+#
+#    # Store GitHub Client Secret
+#    aws ssm put-parameter \
+#        --name "/${var.environment}/auth/github_client_secret" \
+#        --type "SecureString" \
+#        --value "your-github-client-secret" \
+#        --description "GitHub OAuth Client Secret"
+#    ```
+#
+# 2. Google OAuth Setup:
+# =====================
+# a. Go to Google Cloud Console (https://console.cloud.google.com)
+# b. Create a new project or select existing one
+# c. Enable the Google+ API and Identity and Access Management (IAM) API
+# d. Go to APIs & Services -> Credentials -> Create Credentials -> OAuth Client ID
+# e. Configure the OAuth consent screen:
+#    - User Type: External
+#    - App name: Your App Name
+#    - User support email: Your email
+#    - Developer contact information: Your email
+# f. Create OAuth Client ID:
+#    - Application type: Web application
+#    - Name: Your App Name
+#    - Authorized JavaScript origins: https://your-domain.com
+#    - Authorized redirect URIs: https://auth.your-domain.com/oauth2/idpresponse
+# g. Store credentials in SSM:
+#    ```bash
+#    # Store Google Client ID
+#    aws ssm put-parameter \
+#        --name "/${var.environment}/auth/google_client_id" \
+#        --type "SecureString" \
+#        --value "your-google-client-id" \
+#        --description "Google OAuth Client ID"
+#
+#    # Store Google Client Secret
+#    aws ssm put-parameter \
+#        --name "/${var.environment}/auth/google_client_secret" \
+#        --type "SecureString" \
+#        --value "your-google-client-secret" \
+#        --description "Google OAuth Client Secret"
+#    ```
 
 # SSM Parameters for secrets
 resource "aws_ssm_parameter" "github_client_id" {
@@ -187,91 +253,17 @@ resource "aws_cognito_user_pool" "main" {
     }
   }
 
-  tags = var.tags
-}
+  # User Pool Add-ons
+  user_pool_add_ons {
+    advanced_security_mode = "ENFORCED"
+  }
 
-# Cognito User Pool Domain
-resource "aws_cognito_user_pool_domain" "main" {
-  domain          = local.auth_domain
-  certificate_arn = var.wildcard_certificate_arn
-  user_pool_id    = aws_cognito_user_pool.main.id
-}
-
-# Cognito Identity Pool
-resource "aws_cognito_identity_pool" "main" {
-  identity_pool_name = "${var.domain_name}-${var.environment}"
-  
-  allow_unauthenticated_identities = false
-  allow_classic_flow              = false
-
-  cognito_identity_providers {
-    client_id               = aws_cognito_user_pool_client.main.id
-    provider_name          = aws_cognito_user_pool.main.endpoint
-    server_side_token_check = false
+  lifecycle {
+    create_before_destroy = true
   }
 
   tags = var.tags
 }
-# Setup Instructions for OAuth Providers
-#
-# 1. GitHub OAuth Setup:
-# =====================
-# a. Go to GitHub.com -> Settings -> Developer Settings -> OAuth Apps -> New OAuth App
-# b. Fill in the application details:
-#    - Application name: Your App Name (e.g., "MyApp Auth")
-#    - Homepage URL: https://your-domain.com
-#    - Application description: (Optional) Your app description
-#    - Authorization callback URL: https://auth.your-domain.com/oauth2/idpresponse
-# c. After creating, you'll get Client ID and generate a Client Secret
-# d. Store credentials in SSM:
-#    ```bash
-#    # Store GitHub Client ID
-#    aws ssm put-parameter \
-#        --name "/${var.environment}/auth/github_client_id" \
-#        --type "SecureString" \
-#        --value "your-github-client-id" \
-#        --description "GitHub OAuth Client ID"
-#
-#    # Store GitHub Client Secret
-#    aws ssm put-parameter \
-#        --name "/${var.environment}/auth/github_client_secret" \
-#        --type "SecureString" \
-#        --value "your-github-client-secret" \
-#        --description "GitHub OAuth Client Secret"
-#    ```
-#
-# 2. Google OAuth Setup:
-# =====================
-# a. Go to Google Cloud Console (https://console.cloud.google.com)
-# b. Create a new project or select existing one
-# c. Enable the Google+ API and Identity and Access Management (IAM) API
-# d. Go to APIs & Services -> Credentials -> Create Credentials -> OAuth Client ID
-# e. Configure the OAuth consent screen:
-#    - User Type: External
-#    - App name: Your App Name
-#    - User support email: Your email
-#    - Developer contact information: Your email
-# f. Create OAuth Client ID:
-#    - Application type: Web application
-#    - Name: Your App Name
-#    - Authorized JavaScript origins: https://your-domain.com
-#    - Authorized redirect URIs: https://auth.your-domain.com/oauth2/idpresponse
-# g. Store credentials in SSM:
-#    ```bash
-#    # Store Google Client ID
-#    aws ssm put-parameter \
-#        --name "/${var.environment}/auth/google_client_id" \
-#        --type "SecureString" \
-#        --value "your-google-client-id" \
-#        --description "Google OAuth Client ID"
-#
-#    # Store Google Client Secret
-#    aws ssm put-parameter \
-#        --name "/${var.environment}/auth/google_client_secret" \
-#        --type "SecureString" \
-#        --value "your-google-client-secret" \
-#        --description "Google OAuth Client Secret"
-#    ```
 
 # GitHub Identity Provider
 resource "aws_cognito_identity_provider" "github" {
@@ -291,13 +283,16 @@ resource "aws_cognito_identity_provider" "github" {
     jwks_uri             = "https://token.actions.githubusercontent.com/.well-known/jwks"
   }
 
-  # Fixed attribute mapping for GitHub
   attribute_mapping = {
     email    = "email"
-    username = "sub"  # Changed from 'id' to 'sub' to fix the error
+    username = "sub"
     name     = "name"
     given_name = "name"
     picture  = "avatar_url"
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }
 
@@ -320,9 +315,47 @@ resource "aws_cognito_identity_provider" "google" {
     family_name = "family_name"
     picture = "picture"
   }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
-# Update the User Pool Client configuration
+# Cognito User Pool Domain
+resource "aws_cognito_user_pool_domain" "main" {
+  domain          = local.auth_domain
+  certificate_arn = var.wildcard_certificate_arn
+  user_pool_id    = aws_cognito_user_pool.main.id
+
+  lifecycle {
+    create_before_destroy = true
+    replace_triggered_by = [
+      aws_cognito_user_pool.main.id
+    ]
+  }
+}
+
+# Cognito Identity Pool
+resource "aws_cognito_identity_pool" "main" {
+  identity_pool_name = "${var.domain_name}-${var.environment}"
+  
+  allow_unauthenticated_identities = false
+  allow_classic_flow              = false
+
+  cognito_identity_providers {
+    client_id               = aws_cognito_user_pool_client.main.id
+    provider_name          = aws_cognito_user_pool.main.endpoint
+    server_side_token_check = false
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  tags = var.tags
+}
+
+# Cognito User Pool Client
 resource "aws_cognito_user_pool_client" "main" {
   name                                 = "${var.domain_name}-client"
   user_pool_id                        = aws_cognito_user_pool.main.id
@@ -354,34 +387,14 @@ resource "aws_cognito_user_pool_client" "main" {
     refresh_token = "days"
   }
 
+  lifecycle {
+    create_before_destroy = true
+  }
+
   depends_on = [
     aws_cognito_identity_provider.github,
     aws_cognito_identity_provider.google
   ]
-}
-
-# DynamoDB Table for Cedar Policies
-resource "aws_dynamodb_table" "cedar_policies" {
-  name           = "${var.domain_name}-cedar-policies"
-  billing_mode   = "PAY_PER_REQUEST"
-  hash_key       = "policy_id"
-  range_key      = "version"
-
-  attribute {
-    name = "policy_id"
-    type = "S"
-  }
-
-  attribute {
-    name = "version"
-    type = "N"
-  }
-
-  point_in_time_recovery {
-    enabled = true
-  }
-
-  tags = var.tags
 }
 
 # Route53 Records for Auth Domain
@@ -395,6 +408,10 @@ resource "aws_route53_record" "auth_domain" {
     zone_id                = aws_cognito_user_pool_domain.main.cloudfront_distribution_zone_id
     evaluate_target_health = false
   }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_route53_record" "auth_domain_ipv6" {
@@ -407,6 +424,48 @@ resource "aws_route53_record" "auth_domain_ipv6" {
     zone_id                = aws_cognito_user_pool_domain.main.cloudfront_distribution_zone_id
     evaluate_target_health = false
   }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+# CloudWatch Metrics and Alarms
+resource "aws_cloudwatch_metric_alarm" "auth_errors" {
+  count = var.alert_email != "" ? 1 : 0
+  
+  alarm_name          = "${var.domain_name}-auth-errors"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = "2"
+  metric_name         = "Errors"
+  namespace           = "AWS/Cognito"
+  period             = "300"
+  statistic          = "Sum"
+  threshold          = "10"
+  alarm_description  = "Authentication errors exceeded threshold"
+  alarm_actions      = [aws_sns_topic.auth_alerts[0].arn]
+
+  dimensions = {
+    UserPool = aws_cognito_user_pool.main.id
+  }
+
+  tags = var.tags
+}
+
+# SNS Topic for Alerts
+resource "aws_sns_topic" "auth_alerts" {
+  count = var.alert_email != "" ? 1 : 0
+  
+  name = "${var.domain_name}-auth-alerts"
+  tags = var.tags
+}
+
+resource "aws_sns_topic_subscription" "auth_alerts_email" {
+  count = var.alert_email != "" ? 1 : 0
+  
+  topic_arn = aws_sns_topic.auth_alerts[0].arn
+  protocol  = "email"
+  endpoint  = var.alert_email
 }
 
 # Outputs
@@ -416,16 +475,4 @@ output "user_pool_id" {
 }
 
 output "user_pool_client_id" {
-  value       = aws_cognito_user_pool_client.main.id
-  description = "The ID of the Cognito User Pool Client"
-}
-
-output "identity_pool_id" {
-  value       = aws_cognito_identity_pool.main.id
-  description = "The ID of the Cognito Identity Pool"
-}
-
-output "auth_domain" {
-  value       = local.auth_domain
-  description = "The domain name for the authentication endpoint"
-}
+  value       = aws_cognito_user_pool_
