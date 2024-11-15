@@ -4,6 +4,11 @@ variable "domain_name" {
   description = "Main domain name (e.g., example.com)"
 }
 
+variable "wildcard_certificate_arn" {
+  type        = string
+  description = "ARN of the ACM certificate to use for CloudFront"
+}
+
 variable "environment" {
   description = <<EOF
       Environment variable used to tag resources created by this module.
@@ -188,7 +193,7 @@ resource "aws_cognito_user_pool" "main" {
 # Cognito User Pool Domain
 resource "aws_cognito_user_pool_domain" "main" {
   domain          = local.auth_domain
-  certificate_arn = aws_acm_certificate.auth.arn
+  certificate_arn = var.wildcard_certificate_arn
   user_pool_id    = aws_cognito_user_pool.main.id
 }
 
