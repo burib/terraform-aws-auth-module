@@ -34,7 +34,7 @@ variable "tags" {
 
 # Locals
 locals {
-  auth_domain = "auth.${var.domain_name_name}"
+  auth_domain = "auth.${var.domain_name}"
   api_domain  = "api.${var.domain_name}"
   
   password_policy = {
