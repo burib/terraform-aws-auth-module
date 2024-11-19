@@ -56,6 +56,14 @@ locals {
     temporary_password_validity_days = 7
   }
 
+  auth_urls = {
+    sign_in          = "/auth/login"
+    sign_up          = "/auth/signup"
+    signed_out       = "/auth/signed-out"
+    callback         = "/auth/callback"
+    error           = "/auth/error"
+  }
+
   # Social provider configurations
   social_providers = {
     github = {
@@ -70,67 +78,6 @@ locals {
     }
   }
 }
-
-# Setup Instructions for OAuth Providers
-#
-# 1. GitHub OAuth Setup:
-# =====================
-# a. Go to GitHub.com -> Settings -> Developer Settings -> OAuth Apps -> New OAuth App
-# b. Fill in the application details:
-#    - Application name: Your App Name (e.g., "MyApp Auth")
-#    - Homepage URL: https://your-domain.com
-#    - Application description: (Optional) Your app description
-#    - Authorization callback URL: https://auth.your-domain.com/oauth2/idpresponse
-# c. After creating, you'll get Client ID and generate a Client Secret
-# d. Store credentials in SSM:
-#    ```bash
-#    # Store GitHub Client ID
-#    aws ssm put-parameter \
-#        --name "/${var.environment}/auth/github_client_id" \
-#        --type "SecureString" \
-#        --value "your-github-client-id" \
-#        --description "GitHub OAuth Client ID"
-#
-#    # Store GitHub Client Secret
-#    aws ssm put-parameter \
-#        --name "/${var.environment}/auth/github_client_secret" \
-#        --type "SecureString" \
-#        --value "your-github-client-secret" \
-#        --description "GitHub OAuth Client Secret"
-#    ```
-#
-# 2. Google OAuth Setup:
-# =====================
-# a. Go to Google Cloud Console (https://console.cloud.google.com)
-# b. Create a new project or select existing one
-# c. Enable the Google+ API and Identity and Access Management (IAM) API
-# d. Go to APIs & Services -> Credentials -> Create Credentials -> OAuth Client ID
-# e. Configure the OAuth consent screen:
-#    - User Type: External
-#    - App name: Your App Name
-#    - User support email: Your email
-#    - Developer contact information: Your email
-# f. Create OAuth Client ID:
-#    - Application type: Web application
-#    - Name: Your App Name
-#    - Authorized JavaScript origins: https://your-domain.com
-#    - Authorized redirect URIs: https://auth.your-domain.com/oauth2/idpresponse
-# g. Store credentials in SSM:
-#    ```bash
-#    # Store Google Client ID
-#    aws ssm put-parameter \
-#        --name "/${var.environment}/auth/google_client_id" \
-#        --type "SecureString" \
-#        --value "your-google-client-id" \
-#        --description "Google OAuth Client ID"
-#
-#    # Store Google Client Secret
-#    aws ssm put-parameter \
-#        --name "/${var.environment}/auth/google_client_secret" \
-#        --type "SecureString" \
-#        --value "your-google-client-secret" \
-#        --description "Google OAuth Client Secret"
-#    ```
 
 # SSM Parameters for secrets
 resource "aws_ssm_parameter" "github_client_id" {
@@ -365,6 +312,7 @@ resource "aws_cognito_user_pool_client" "main" {
   refresh_token_validity              = 30
   access_token_validity               = 1
   id_token_validity                   = 1
+  enable_token_revocation            = true
   allowed_oauth_flows_user_pool_client = true
   allowed_oauth_flows                  = ["code", "implicit"]
   allowed_oauth_scopes                 = ["email", "openid", "profile"]
@@ -372,13 +320,12 @@ resource "aws_cognito_user_pool_client" "main" {
   supported_identity_providers         = ["COGNITO", "Google", "GitHub"]
   
   callback_urls = [
-    "https://${var.domain_name}/callback",
-    "https://${var.domain_name}/signin"
+    "https://${var.domain_name}${local.auth_urls.callback}",
+    "https://${var.domain_name}${local.auth_urls.sign_in}"
   ]
   
   logout_urls = [
-    "https://${var.domain_name}/signout",
-    "https://${var.domain_name}/logout"
+    "https://${var.domain_name}${local.auth_urls.signed_out}"
   ]
 
   token_validity_units {
@@ -495,8 +442,13 @@ output "auth_domain" {
   description = "The domain name for the authentication endpoint"
 }
 
+output "auth_urls" {
+  value       = local.auth_urls
+  description = "Map of authentication URLs"
+}
+
 output "hosted_ui_url" {
-  value       = "https://${local.auth_domain}/login?client_id=${aws_cognito_user_pool_client.main.id}&response_type=code&scope=email+openid+profile&redirect_uri=https://${var.domain_name}/callback"
+  value       = "https://${local.auth_domain}/oauth2/authorize?client_id=${aws_cognito_user_pool_client.main.id}&response_type=code&scope=email+openid+profile&redirect_uri=https://${var.domain_name}${local.auth_urls.callback}"
   description = "The URL for the Cognito Hosted UI"
 }
 
