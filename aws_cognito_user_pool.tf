@@ -22,12 +22,12 @@ resource "aws_cognito_user_pool" "main" {
 
   # Password Policy
   password_policy {
-    minimum_length                   = local.password_policy.minimum_length
-    require_lowercase                = local.password_policy.require_lowercase
-    require_numbers                  = local.password_policy.require_numbers
-    require_symbols                  = local.password_policy.require_symbols
-    require_uppercase                = local.password_policy.require_uppercase
-    temporary_password_validity_days = local.password_policy.temporary_password_validity_days
+    minimum_length                   = var.password_policy.minimum_length
+    require_lowercase                = var.password_policy.require_lowercase
+    require_numbers                  = var.password_policy.require_numbers
+    require_symbols                  = var.password_policy.require_symbols
+    require_uppercase                = var.password_policy.require_uppercase
+    temporary_password_validity_days = var.password_policy.temporary_password_validity_days
   }
 
   # Email Configuration
