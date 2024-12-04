@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2](https://github.com/burib/terraform-aws-auth-module/compare/v0.1.1...v0.1.2) (2024-12-04)
+
+
+### Bug Fixes
+
+* update password policy variable ([e69bed0](https://github.com/burib/terraform-aws-auth-module/commit/e69bed09558752a9a869e136cc58a5274adb4ebc))
+
 ## [0.1.1](https://github.com/burib/terraform-aws-auth-module/compare/v0.1.0...v0.1.1) (2024-12-04)
 
 
