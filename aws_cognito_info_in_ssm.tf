@@ -1,12 +1,19 @@
+resource "aws_ssm_parameter" "cognito_user_pool_arn" {
+  name        = "/auth/cognito/user_pool_arn"
+  value       = aws_cognito_user_pool.main.arn
+  description = "Cognito User Pool ARN"
+  type        = "String"
+}
+
 resource "aws_ssm_parameter" "cognito_user_pool_client_main_client_id" {
-  name        = "/auth/cognito_user_pool_client/main/client_id"
+  name        = "/auth/cognito/user_pool_client_id"
   value       = aws_cognito_user_pool_client.main.id
   description = "Cognito User Pool Main Client - Client Id"
   type        = "String"
 }
 
 resource "aws_ssm_parameter" "cognito_user_pool_client_main_client_secrets" {
-  name        = "/auth/cognito_user_pool_client/main/client_secret"
+  name        = "/auth/cognito/user_pool_client_secret"
   value       = aws_cognito_user_pool_client.main.client_secret
   description = "Cognito User Pool Main Client - Client Secret - ${aws_cognito_user_pool_client.main.id}"
   type        = "SecureString"
