@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.3](https://github.com/burib/terraform-aws-auth-module/compare/v0.1.2...v0.1.3) (2024-12-26)
+
+
+### Bug Fixes
+
+* update ssm param names ([153c5b9](https://github.com/burib/terraform-aws-auth-module/commit/153c5b93e51dc2b6e573c67fd40db09be8fc814f))
+
 ## [0.1.2](https://github.com/burib/terraform-aws-auth-module/compare/v0.1.1...v0.1.2) (2024-12-04)
 
 
