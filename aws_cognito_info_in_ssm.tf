@@ -5,6 +5,13 @@ resource "aws_ssm_parameter" "cognito_user_pool_arn" {
   type        = "String"
 }
 
+resource "aws_ssm_parameter" "cognito_user_pool_id" {
+  name        = "/auth/cognito/user_pool_id"
+  value       = aws_cognito_user_pool.main.id
+  description = "Cognito User Pool ID"
+  type        = "String"
+}
+
 resource "aws_ssm_parameter" "cognito_user_pool_client_main_client_id" {
   name        = "/auth/cognito/user_pool_client_id"
   value       = aws_cognito_user_pool_client.main.id
