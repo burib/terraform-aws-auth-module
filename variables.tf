@@ -6,21 +6,21 @@ variable "domain_name" {
 
 variable "password_policy" {
   type = object({
-    minimum_length                    = number
-    require_lowercase                 = bool
-    require_numbers                   = bool
-    require_symbols                   = bool
-    require_uppercase                 = bool
-    temporary_password_validity_days  = number
+    minimum_length                   = number
+    require_lowercase                = bool
+    require_numbers                  = bool
+    require_symbols                  = bool
+    require_uppercase                = bool
+    temporary_password_validity_days = number
   })
   description = "Password policy for the user pool"
   default = {
-    minimum_length                    = 8
-    require_lowercase                 = true
-    require_numbers                   = true
-    require_symbols                   = true
-    require_uppercase                 = true
-    temporary_password_validity_days  = 7
+    minimum_length                   = 8
+    require_lowercase                = true
+    require_numbers                  = true
+    require_symbols                  = true
+    require_uppercase                = true
+    temporary_password_validity_days = 7
   }
 }
 

@@ -73,16 +73,18 @@ resource "aws_cognito_user_pool" "main" {
   schema {
     name                = "custom:user_id"
     attribute_data_type = "String"
-    required            = false  # Not required at creation (lambda will set it)
-    mutable             = false  # Should not be changeable after creation
+    required            = false # Not required at creation (lambda will set it)
+    mutable             = false # Should not be changeable after creation
     string_attribute_constraints {
-    min_length = 36   # UUID length
-    max_length = 36
+      min_length = 36 # UUID length
+      max_length = 36
+    }
   }
 
-  # Add the lambda trigger to set user_id after confirmation
+  # Add the lambda triggers
   lambda_config {
-    post_confirmation = aws_lambda_function.post_confirmation_handler.arn
+    post_confirmation    = module.lambda_trigger_post_confirmation.lambda_function_arn
+    pre_token_generation = module.lambda_trigger_pre_token_generation.lambda_function_arn
   }
 
   # Device Configuration
