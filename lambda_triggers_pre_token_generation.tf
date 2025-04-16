@@ -2,7 +2,7 @@ module "lambda_trigger_pre_token_generation" {
   source  = "terraform-aws-modules/lambda/aws"
   version = "7.20.1" # Use the desired version
 
-  function_name                     = "${var.domain_name}-pre-token-generation"
+  function_name                     = "${local.sanitized_domain_name}-cognito-pre-token-generation"
   description                       = "Lambda function to add user_id to Cognito tokens"
   handler                           = "index.lambda_handler"
   runtime                           = "python3.12" # Use a supported runtime
