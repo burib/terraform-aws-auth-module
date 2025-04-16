@@ -1,2 +1,2 @@
-uuid-v7~=0.1.0
+uuid-v7==1.0.0
 # boto3 is pre-installed in the Lambda environment
