@@ -2,7 +2,7 @@ import json
 import os
 import logging
 from datetime import datetime
-from uuid_v7 import uuid7
+from uuidv7 import uuidv7
 from boto3 import resource, client
 
 # Configure logging
@@ -142,7 +142,7 @@ def lambda_handler(event, context):
             else:
                 # FLOW: Brand new user signup
                 # Generate sortable UUIDv7 for chronological ordering capability
-                user_id = str(uuid7())
+                user_id = str(uuidv7())
                 logger.info(f"Generated new UUIDv7 userId: {user_id} for email: {email}")
                 
             # ---------------------------------------------------------------------
