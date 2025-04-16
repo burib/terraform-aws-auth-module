@@ -1,6 +1,7 @@
 locals {
   region      = data.aws_region.current.name
   auth_domain = "${var.auth_domain}.${var.domain_name}"
+  sanitized_domain_name = replace(var.domain_name, ".", "-")
 
   password_policy = var.password_policy
 
