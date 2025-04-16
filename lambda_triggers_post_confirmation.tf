@@ -64,7 +64,7 @@ resource "aws_iam_role_policy" "lambda_post_confirmation_cognito_policy" {
 
 # --- Separate Lambda Permission for Cognito to Invoke Lambda ---
 resource "aws_lambda_permission" "allow_cognito_post_confirmation" {
-  statement_id  = "AllowCognitoInvokePostConfirmation"
+  statement_id  = "Allow${local.camel_case_domain_name}CognitoInvokePostConfirmation${local.region}"
   action        = "lambda:InvokeFunction"
   function_name = module.lambda_trigger_post_confirmation.lambda_function_name
   principal     = "cognito-idp.amazonaws.com"

@@ -44,7 +44,7 @@ module "lambda_trigger_pre_token_generation" {
 
 # --- Separate Lambda Permission for Cognito to Invoke Pre Token Generation Lambda ---
 resource "aws_lambda_permission" "allow_cognito_pre_token_generation" {
-  statement_id  = "AllowCognitoInvokePreTokenGeneration"
+  statement_id  = "Allow${local.camel_case_domain_name}CognitoInvokePreTokenGeneration${local.region}"
   action        = "lambda:InvokeFunction"
   function_name = module.lambda_trigger_pre_token_generation.lambda_function_name
   principal     = "cognito-idp.amazonaws.com"
