@@ -58,7 +58,7 @@ resource "aws_cognito_user_pool" "main" {
   }
 
   schema {
-    name                = "custom:role"
+    name                = "role"
     attribute_data_type = "String"
     required            = false
     mutable             = true
@@ -70,7 +70,7 @@ resource "aws_cognito_user_pool" "main" {
   }
 
   schema {
-    name                = "custom:user_id"
+    name                = "user_id"
     attribute_data_type = "String"
     required            = false # Not required at creation (lambda will set it)
     mutable             = false # Should not be changeable after creation
