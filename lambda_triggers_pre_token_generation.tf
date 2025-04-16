@@ -19,7 +19,6 @@ module "lambda_trigger_pre_token_generation" {
 
   environment_variables = {
     USERS_TABLE_NAME = module.users_table.dynamodb_table_id
-    USER_POOL_ID = aws_cognito_user_pool.main.id
   }
 
   attach_policy_statements = true
