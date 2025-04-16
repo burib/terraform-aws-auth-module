@@ -26,6 +26,29 @@ resource "aws_ssm_parameter" "cognito_user_pool_client_main_client_secrets" {
   type        = "SecureString"
 }
 
+resource "aws_ssm_parameter" "cognito_ui_logout_url" {
+  name        = "/auth/cognito/ui_logout_url"
+  value       = "TODO"
+  description = "UI Logout Page - TODO"
+  type        = "String"
+}
+
+resource "aws_ssm_parameter" "cognito_ui_refresh_url" {
+  name        = "/auth/cognito/ui_refresh_url"
+  value       = "TODO"
+  description = "UI Refresh Token Page - TODO"
+  type        = "String"
+}
+
+# function render_ui_config() {
+#  local LOGIN_URL=$(get_ssm_value "/auth/cognito/ui_login_url")
+#  local LOGOUT_URL=$(get_ssm_value "/auth/cognito/ui_logout_url")
+#  local REFRESH_URL=$(get_ssm_value "/auth/cognito/ui_refresh_url")
+#  cat "$CONFIG_DIR/config.json" | jq '.login_url = "$LOGIN_URL" | .logout_url = "$LOGOUT_URL"' | jq -c > "${DIST_DIR}/config.json"
+
+#  cat "$DIST_DIR/config.json" | jq
+# }
+
 # SSM Parameters for secrets
 # resource "aws_ssm_parameter" "github_client_id" {
 #   name  = "/${var.environment}/auth/github_client_id"
