@@ -2,7 +2,7 @@ module "lambda_trigger_post_confirmation" {
   source  = "terraform-aws-modules/lambda/aws"
   version = "7.20.1" # Use the desired version
 
-  function_name                     = "${var.domain_name}-post-confirmation"
+  function_name                     = "${local.sanitized_domain_name}-cognito-post-confirmation"
   description                       = "Lambda function to set user_id after confirmation and store user data"
   handler                           = "index.lambda_handler"
   runtime                           = "python3.12" # Use a supported runtime
