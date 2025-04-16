@@ -1,4 +1,4 @@
-# Save this code in a file, e.g., custom_uuid.py
+# Save this code in a file, e.g., uuidv7.py
 
 import time
 import random
@@ -7,7 +7,7 @@ import uuid # Use the standard library uuid module
 # Use SystemRandom for cryptographically secure random numbers
 _SYSTEM_RANDOM = random.SystemRandom()
 
-def uuid7() -> uuid.UUID:
+def uuidv7() -> uuid.UUID:
     """
     Generates a UUID Version 7 (time-ordered) according to RFC 9562.
 
@@ -36,20 +36,20 @@ def uuid7() -> uuid.UUID:
     # Variant (var) is RFC 4122 (0b10)
     VARIANT = 0x2
 
-    # Construct the 128-bit integer:
-    uuid_int = (unix_ts_ms << 80)  # Shift timestamp 80 bits left
-    uuid_int |= (VERSION << 76)    # Place version bits (4 bits)
-    uuid_int |= (rand_a << 64)     # Place rand_a bits (12 bits)
-    uuid_int |= (VARIANT << 62)    # Place variant bits (2 bits)
-    uuid_int |= rand_b             # Place rand_b bits (62 bits)
+    # Construct the 128-bit integer according to RFC 9562 layout:
+    uuid_int = (unix_ts_ms << 80)  # Place 48-bit timestamp at the most significant position
+    uuid_int |= (VERSION << 76)    # Place 4-bit version
+    uuid_int |= (rand_a << 64)     # Place 12-bit rand_a
+    uuid_int |= (VARIANT << 62)    # Place 2-bit variant
+    uuid_int |= rand_b             # Place 62-bit rand_b in the least significant position
 
-    # Return as a standard uuid.UUID object
+    # Return as a standard uuid.UUID object, letting it handle formatting
     return uuid.UUID(int=uuid_int)
 
 # --- Example Usage (optional, for testing) ---
 if __name__ == "__main__":
-    id1 = uuid7()
-    id2 = uuid7()
+    id1 = uuidv7()
+    id2 = uuidv7()
     print(f"UUIDv7 (RFC 9562 compliant): {id1}")
     print(f"UUIDv7 (RFC 9562 compliant): {id2}")
     print(f"Is id1 < id2 (time sortable)? {id1 < id2}") # Should generally be true if generated sequentially
