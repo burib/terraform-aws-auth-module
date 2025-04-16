@@ -7,7 +7,7 @@ module "lambda_trigger_post_confirmation" {
   handler                           = "index.lambda_handler"
   runtime                           = "python3.12" # Use a supported runtime
   timeout                           = 30
-  role_name                         = "lambda-role-${var.domain_name}-post-confirmation-${local.region}"
+  role_name                         = "lambda-role-${local.sanitized_domain_name}-post-confirmation-${local.region}"
   cloudwatch_logs_retention_in_days = 7
 
   source_path = [
@@ -54,9 +54,9 @@ resource "aws_iam_role_policy" "lambda_post_confirmation_cognito_policy" {
     Version = "2012-10-17"
     Statement = [
       {
-        Effect    = "Allow"
-        Action    = ["cognito-idp:AdminUpdateUserAttributes"]
-        Resource  = [aws_cognito_user_pool.main.arn]
+        Effect   = "Allow"
+        Action   = ["cognito-idp:AdminUpdateUserAttributes"]
+        Resource = [aws_cognito_user_pool.main.arn]
       },
     ]
   })

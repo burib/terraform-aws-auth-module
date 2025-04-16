@@ -7,7 +7,7 @@ module "lambda_trigger_pre_token_generation" {
   handler                           = "index.lambda_handler"
   runtime                           = "python3.12" # Use a supported runtime
   timeout                           = 5
-  role_name                         = "lambda-role-${var.domain_name}-pre-token-generation-${local.region}"
+  role_name                         = "lambda-role-${local.sanitized_domain_name}-pre-token-generation-${local.region}"
   cloudwatch_logs_retention_in_days = 7
 
   source_path = [
