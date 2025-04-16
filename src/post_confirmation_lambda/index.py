@@ -2,7 +2,7 @@ import json
 import os
 import logging
 from datetime import datetime
-from uuid7 import uuid7  # Using UUIDv7 for sortable IDs
+from uuid_v7 import uuid7
 from boto3 import resource, client
 
 # Configure logging
