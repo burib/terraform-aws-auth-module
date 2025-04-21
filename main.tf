@@ -84,7 +84,7 @@ resource "aws_cognito_user_pool" "main" {
   lambda_config {
     post_confirmation    = module.lambda_trigger_post_confirmation.lambda_function_arn
     pre_token_generation = module.lambda_trigger_pre_token_generation.lambda_function_arn
-    pre_sign_up = module
+    pre_sign_up          = module.lambda_trigger_pre_signup.lambda_function_arn
   }
 
   # Device Configuration
