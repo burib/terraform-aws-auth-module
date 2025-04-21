@@ -12,7 +12,7 @@ module "lambda_trigger_pre_signup" {
 
   source_path = [
     {
-      path             = "${path.module}/src/pre_signup_lambda"
+      path             = "${path.module}/src/pre_sign_up_lambda"
       pip_requirements = true
     }
   ]
