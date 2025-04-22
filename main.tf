@@ -72,7 +72,7 @@ resource "aws_cognito_user_pool" "main" {
   schema {
     name                = "user_id"
     attribute_data_type = "String"
-    required            = true
+    required            = false # required custom attribute are not supported.
     mutable             = true
     string_attribute_constraints {
       min_length = 36 # UUID length
