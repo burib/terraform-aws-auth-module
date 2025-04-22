@@ -72,8 +72,8 @@ resource "aws_cognito_user_pool" "main" {
   schema {
     name                = "user_id"
     attribute_data_type = "String"
-    required            = false # Not required at creation (lambda will set it)
-    mutable             = false # Should not be changeable after creation
+    required            = true
+    mutable             = true
     string_attribute_constraints {
       min_length = 36 # UUID length
       max_length = 36
