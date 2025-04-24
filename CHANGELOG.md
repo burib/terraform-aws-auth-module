@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/burib/terraform-aws-auth-module/compare/v0.1.3...v0.2.0) (2025-04-24)
+
+
+### Features
+
+* setup post_confirmation_lambda ([#7](https://github.com/burib/terraform-aws-auth-module/issues/7)) ([0e1b245](https://github.com/burib/terraform-aws-auth-module/commit/0e1b245f9075b387f0b97534bdbe2f92f47511ac))
+
 ## [0.1.3](https://github.com/burib/terraform-aws-auth-module/compare/v0.1.2...v0.1.3) (2024-12-26)
 
 
