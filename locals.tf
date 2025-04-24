@@ -1,7 +1,6 @@
 locals {
-  region      = data.aws_region.current.name
-  auth_domain = "${var.auth_domain}.${var.domain_name}"
-
+  region          = data.aws_region.current.name
+  auth_domain     = "${var.auth_domain}.${var.domain_name}"
   password_policy = var.password_policy
 
   auth_urls = {
@@ -9,6 +8,17 @@ locals {
     logout   = "/auth/logout"
     error    = "/auth/error.html"
   }
+  sanitized_domain_name = replace(var.domain_name, ".", "-")
+  _domain_parts         = split(".", var.domain_name)
+  _processed_domain_parts = length(local._domain_parts) == 0 || local._domain_parts[0] == "" ? [] : concat(
+    # First part (lowercase)
+    [lower(local._domain_parts[0])],
+    # Subsequent parts ("Dot" + TitleCase)
+    [for i, part in local._domain_parts : format("Dot%s", title(part)) if i > 0]
+  )
+
+  # Join the processed parts
+  camel_case_domain_name = join("", local._processed_domain_parts)
 
   # Social provider configurations
   # social_providers = {
