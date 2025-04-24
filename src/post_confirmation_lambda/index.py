@@ -4,14 +4,17 @@ import logging
 from datetime import datetime
 from boto3 import resource, client
 from botocore.exceptions import ClientError
+from uuidv7 import uuidv7
 
 # Configure logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 try:
+
     dynamodb_resource = resource('dynamodb')
-    dynamodb_client = client('dynamodb') # Needed for TransactWriteItems
+    dynamodb_client = client('dynamodb')
+    cognito_client = client('cognito-idp')
     USERS_TABLE_NAME = os.environ.get('USERS_TABLE_NAME')
     if not USERS_TABLE_NAME:
         raise ValueError("Environment variable USERS_TABLE_NAME is not set.")
@@ -34,6 +37,7 @@ def lambda_handler(event, context):
     - Fails Lambda execution if essential IDs (sub, custom:user_id) are missing.
     """
     logger.info(f"Received event: {json.dumps(event)}")
+    user_id = None
 
     # Table initialization checked globally, but double-check can be added if needed.
 
@@ -47,7 +51,6 @@ def lambda_handler(event, context):
         # ---- Get user attributes ----
         user_attributes = event['request'].get('userAttributes', {})
         cognito_sub = user_attributes.get('sub')
-        user_id = user_attributes.get('custom:user_id') # Assigned by Pre Sign-up Lambda
         user_pool_id = event['userPoolId']
         username = event['userName'] # Cognito username
 
@@ -56,10 +59,10 @@ def lambda_handler(event, context):
             # Fail fast if Cognito identity cannot be linked
             logger.error(f"FATAL: Cognito 'sub' attribute missing for username {username}.")
             raise ValueError(f"Missing Cognito 'sub' for {username}")
-        if not user_id:
-            # Fail fast if internal user ID link is missing (Pre Sign-up issue)
-            logger.error(f"FATAL: 'custom:user_id' attribute missing for username {username} / sub {cognito_sub}.")
-            raise ValueError(f"custom:user_id missing for {username}")
+
+        # --- Generate new  user_id ---
+        user_id = str(uuidv7())
+        logger.info(f"Generated new user_id: {user_id} for username: {username}")
 
         # Fixed log message - removed undefined 'email'
         logger.info(f"Processing confirmation for user_id: {user_id}, cognito_sub: {cognito_sub}")
@@ -142,26 +145,36 @@ def lambda_handler(event, context):
 
         # Define Minimal PROFILE Item
         profile_item = {
-            'PK': f"USER#{user_id}",
-            'SK': "PROFILE",
-            'userId': user_id,              # Minimal: just the ID for reference
-            'status': 'ACTIVE',             # Minimal: application status
-            'createdAt': timestamp,         # Minimal: record creation time
-            'updatedAt': timestamp,         # Minimal: same initially
-            'entityType': 'USER'            # Minimal: type identifier
+            'PK': {'S': f"USER#{user_id}"},
+            'SK': {'S': "PROFILE"},
+            'userId': {'S': user_id},
+            'status': {'S': 'ACTIVE'},
+            'createdAt': {'S': timestamp},
+            'updatedAt': {'S': timestamp},
+            'entityType': {'S': 'USER'}
         }
 
         # Define Minimal SETTINGS Item
         settings_item = {
-            'PK': f"USER#{user_id}",
-            'SK': "SETTINGS",
-            'entityType': 'SETTINGS',       # Minimal: type identifier
-            'createdAt': timestamp,         # Minimal: record creation time
-            'updatedAt': timestamp,         # Minimal: same initially
-            # Minimal: essential non-PII preferences with generic defaults
-            'preferences': { 'theme': 'light', 'language': 'en' },
-            # Minimal: default opt-out for generic categories
-            'notifications': { 'marketing': { 'email': False } }
+            'PK': {'S': f"USER#{user_id}"},
+            'SK': {'S': "SETTINGS"},
+            'entityType': {'S': 'SETTINGS'},
+            'createdAt': {'S': timestamp},
+            'updatedAt': {'S': timestamp},
+            # Map types need {'M': { key: {type: value} } } structure
+            'preferences': {'M': {
+                'theme': {'S': 'light'},
+                'language': {'S': 'en'}
+              }
+            },
+            # Nested maps and booleans need explicit types too
+            'notifications': {'M': {
+                'marketing': {'M': {
+                    'email': {'BOOL': False}
+                  }
+                }
+              }
+            }
         }
 
         # Execute the transaction to add PROFILE and SETTINGS
@@ -169,16 +182,15 @@ def lambda_handler(event, context):
             {
                 'Put': {
                     'TableName': USERS_TABLE_NAME,
-                    'Item': profile_item,
-                    'ConditionExpression': 'attribute_not_exists(PK)' # Only add PROFILE if USER#{id} PK doesn't exist
+                    'Item': profile_item, # Use the correctly formatted item
+                    'ConditionExpression': 'attribute_not_exists(PK)'
                 }
             },
             {
                 'Put': {
                     'TableName': USERS_TABLE_NAME,
-                    'Item': settings_item,
-                     # ConditionExpression is on the Item in the list, refers to the Item being written
-                    'ConditionExpression': 'attribute_not_exists(PK)' # Only add SETTINGS if USER#{id} PK doesn't exist
+                    'Item': settings_item, # Use the correctly formatted item
+                    'ConditionExpression': 'attribute_not_exists(PK)'
                 }
             }
         ]
@@ -208,6 +220,30 @@ def lambda_handler(event, context):
                 # Decide: Allow confirmation (return event) or enforce consistency (raise e)?
                 # return event # Risks inconsistency if profile/settings creation fails
                 raise e # Enforces consistency (recommended for core user data)
+
+        # ---- Update Cognito Custom Attribute ----
+        # Call this AFTER successful DB operations (or potentially earlier if preferred)
+        # This step requires the 'cognito-idp:AdminUpdateUserAttributes' permission
+        try:
+            logger.info(f"Attempting to set custom:user_id={user_id} in Cognito for username {username}")
+            cognito_client.admin_update_user_attributes(
+                UserPoolId=user_pool_id,
+                Username=username, # Use username (or sub, but username is often required for admin actions)
+                UserAttributes=[
+                    {
+                        'Name': 'custom:user_id',
+                        'Value': user_id
+                    },
+                ]
+            )
+            logger.info(f"Successfully set custom:user_id in Cognito for username {username}")
+        except ClientError as e:
+            logger.error(f"Failed to set custom:user_id in Cognito for username {username}: {str(e)}")
+            # Decide how to handle this failure:
+            # - Log and continue (user confirmed, DB entries exist, but Cognito attribute missing)
+            # - Raise exception (fails the confirmation process if Cognito update fails) - Recommended for consistency
+            raise e # Make confirmation fail if attribute update fails
+
 
         # If we reach here, all necessary DB operations succeeded or were gracefully handled (already exist)
         logger.info(f"Successfully processed confirmation for user_id: {user_id}")

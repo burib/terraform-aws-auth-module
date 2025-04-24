@@ -5,7 +5,7 @@ module "lambda_trigger_pre_signup" {
   function_name                     = "${local.sanitized_domain_name}-cognito-pre-signup"
   description                       = "Lambda function to add custom:user_id to cognito user attributes"
   handler                           = "index.lambda_handler"
-  runtime                           = "python3.12" # Use a supported runtime
+  runtime                           = "python3.13" # Use a supported runtime
   timeout                           = 5
   role_name                         = "lambda-role-${local.sanitized_domain_name}-pre-signup-${local.region}"
   cloudwatch_logs_retention_in_days = 7

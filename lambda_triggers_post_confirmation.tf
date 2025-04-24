@@ -5,7 +5,7 @@ module "lambda_trigger_post_confirmation" {
   function_name                     = "${local.sanitized_domain_name}-cognito-post-confirmation"
   description                       = "Lambda function to set user_id after confirmation and store user data"
   handler                           = "index.lambda_handler"
-  runtime                           = "python3.12" # Use a supported runtime
+  runtime                           = "python3.13" # Use a supported runtime
   timeout                           = 30
   role_name                         = "lambda-role-${local.sanitized_domain_name}-post-confirmation-${local.region}"
   cloudwatch_logs_retention_in_days = 7
