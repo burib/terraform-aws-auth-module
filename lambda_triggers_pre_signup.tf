@@ -3,7 +3,7 @@ module "lambda_trigger_pre_signup" {
   version = "7.20.1" # Use the desired version
 
   function_name                     = "${local.sanitized_domain_name}-cognito-pre-signup"
-  description                       = "Lambda function to add custom:user_id to cognito user attributes"
+  description                       = "Lambda function to validate sign-ups"
   handler                           = "index.lambda_handler"
   runtime                           = "python3.13" # Use a supported runtime
   timeout                           = 5
@@ -19,6 +19,8 @@ module "lambda_trigger_pre_signup" {
 
   environment_variables = {
     USERS_TABLE_NAME = module.users_table.dynamodb_table_id
+    TENANT_STRATEGY  = var.tenant_strategy
+    ALLOWED_DOMAINS  = jsonencode(var.allowed_domains)
   }
 
   attach_policy_statements = true

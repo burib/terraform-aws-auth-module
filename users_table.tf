@@ -30,6 +30,22 @@ module "users_table" {
     {
       name = "GSI2SK"
       type = "S"
+    },
+    {
+      name = "GSI3PK"
+      type = "S"
+    },
+    {
+      name = "GSI3SK"
+      type = "S"
+    },
+    {
+      name = "GSI4PK"
+      type = "S"
+    },
+    {
+      name = "GSI4SK"
+      type = "S"
     }
   ]
 
@@ -47,6 +63,24 @@ module "users_table" {
       name               = "GSI2"
       hash_key           = "GSI2PK"
       range_key          = "GSI2SK"
+      projection_type    = "ALL"
+      read_capacity      = null
+      write_capacity     = null
+      non_key_attributes = []
+    },
+    {
+      name               = "GSI3"
+      hash_key           = "GSI3PK"
+      range_key          = "GSI3SK"
+      projection_type    = "ALL"
+      read_capacity      = null
+      write_capacity     = null
+      non_key_attributes = []
+    },
+    {
+      name               = "GSI4"
+      hash_key           = "GSI4PK"
+      range_key          = "GSI4SK"
       projection_type    = "ALL"
       read_capacity      = null
       write_capacity     = null

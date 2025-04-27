@@ -80,6 +80,19 @@ resource "aws_cognito_user_pool" "main" {
     }
   }
 
+  # Add tenant_id attribute for multi-tenant support
+  schema {
+    name                = "tenant_id"
+    attribute_data_type = "String"
+    required            = false # Required custom attributes are not supported
+    mutable             = true
+
+    string_attribute_constraints {
+      min_length = 1
+      max_length = 128
+    }
+  }
+
   # Add the lambda triggers
   lambda_config {
     post_confirmation    = module.lambda_trigger_post_confirmation.lambda_function_arn
@@ -95,7 +108,7 @@ resource "aws_cognito_user_pool" "main" {
 
   # Admin Create User Config
   admin_create_user_config {
-    allow_admin_create_user_only = false
+    allow_admin_create_user_only = var.allow_admin_create_user_only
 
     invite_message_template {
       email_message = "Your username is {username} and temporary password is {####}."

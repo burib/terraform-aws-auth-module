@@ -18,7 +18,12 @@ module "lambda_trigger_post_confirmation" {
   ]
 
   environment_variables = {
-    USERS_TABLE_NAME = module.users_table.dynamodb_table_id
+    USERS_TABLE_NAME       = module.users_table.dynamodb_table_id
+    TENANT_STRATEGY        = var.tenant_strategy
+    ALLOW_PERSONAL_TENANTS = var.allow_personal_tenants
+    DOMAIN_TENANT_MAP      = jsonencode(var.domain_tenant_map)
+    ALLOWED_DOMAINS        = jsonencode(var.allowed_domains)
+    REQUIRE_TENANT         = tostring(var.require_tenant)
   }
 
   attach_policy_statements = true

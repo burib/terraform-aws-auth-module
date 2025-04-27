@@ -61,3 +61,24 @@ output "token_issuer_endpoint" {
   value       = "https://cognito-idp.${local.region}.amazonaws.com/${aws_cognito_user_pool.main.id}"
   description = "URL of the token issuer"
 }
+
+# New outputs for multi-tenant support
+output "token_endpoint" {
+  value       = "https://${local.auth_domain}/oauth2/token"
+  description = "OAuth2 token endpoint for token refresh/tenant switching"
+}
+
+output "revoke_token_endpoint" {
+  value       = "https://${local.auth_domain}/oauth2/revoke"
+  description = "OAuth2 token revocation endpoint"
+}
+
+output "users_table_name" {
+  value       = module.users_table.dynamodb_table_id
+  description = "Name of the DynamoDB Users table"
+}
+
+output "users_table_arn" {
+  value       = module.users_table.dynamodb_table_arn
+  description = "ARN of the DynamoDB Users table"
+}
