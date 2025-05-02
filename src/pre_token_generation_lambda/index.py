@@ -1,8 +1,7 @@
 import json
 import os
 import logging
-from boto3.resource.dynamodb import Table
-from boto3 import resource
+import boto3
 from boto3.dynamodb.conditions import Key
 
 # Configure logging
@@ -10,7 +9,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 # Initialize DynamoDB resources
-dynamodb_resource = resource('dynamodb')
+dynamodb_resource = boto3.resource('dynamodb')
 users_table = dynamodb_resource.Table(os.environ.get('USERS_TABLE_NAME', ''))
 
 def lambda_handler(event, context):
